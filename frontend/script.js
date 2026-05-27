@@ -5,13 +5,38 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
 
+    const browserIdStorageKey = "azureCloudResumeBrowserId";
+    const visitorApiUrl =
+        "https://func-azure-cloud-resume-frd2026.azurewebsites.net/api/visitors";
+
+    function getOrCreateBrowserId() {
+        let browserId = window.localStorage.getItem(browserIdStorageKey);
+
+        if (!browserId) {
+            browserId = window.crypto.randomUUID();
+            window.localStorage.setItem(browserIdStorageKey, browserId);
+        }
+
+        return browserId;
+    }
+
     try {
-        const response = await fetch(
-            "https://func-azure-cloud-resume-frd2026.azurewebsites.net/api/visitors"
-        );
+        const browserId = getOrCreateBrowserId();
+
+        const response = await fetch(visitorApiUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                browserId
+            })
+        });
 
         if (!response.ok) {
-            throw new Error(`Visitor API request failed with status ${response.status}.`);
+            throw new Error(
+                `Visitor API request failed with status ${response.status}.`
+            );
         }
 
         const data = await response.json();
